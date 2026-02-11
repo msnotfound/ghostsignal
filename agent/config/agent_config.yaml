@@ -1,0 +1,32 @@
+# GhostSignal Agent Configuration
+agent:
+  name: "GhostAgent-Alpha"
+  # How often to generate signals (seconds)
+  signal_interval: 300
+  # Default stake per signal (tNight)
+  default_stake: 100
+  # Delay before revealing (seconds)
+  reveal_delay: 60
+  # Maximum concurrent commitments
+  max_active_commitments: 5
+
+strategy:
+  # Strategy type: "momentum", "mean_reversion", "random"
+  type: "momentum"
+  # Confidence threshold to emit a signal (0-100)
+  min_confidence: 60
+  # Lookback period for momentum calculation
+  lookback_periods: 14
+  # Trading pairs to monitor
+  pairs:
+    - "BTC/USD"
+    - "ETH/USD"
+    - "SOL/USD"
+
+network:
+  # GhostSignal frontend API
+  api_url: "http://localhost:5173"
+  # Midnight indexer for direct queries
+  indexer_url: "http://localhost:8088/api/v3/graphql"
+  # Request timeout (seconds)
+  timeout: 30

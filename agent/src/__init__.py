@@ -1,0 +1,1 @@
+# GhostSignal Agent — Python package
