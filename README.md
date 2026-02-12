@@ -26,9 +26,9 @@ Midnight provides the best of both: **programmable privacy with selective disclo
 
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│  💡 Generate  │ ──> │  🔒 Commit    │ ──> │  👁️ Reveal    │ ──> ✅ Verify
-│  Signal       │     │  Hash on-chain│     │  Prove match  │     Score on-chain
-│  (off-chain)  │     │  (ZK proof)   │     │  (ZK proof)   │
+│  💡 Generate │ ──> │  🔒 Commit   │ ──> │  👁️ Reveal   │ ──> ✅ Verify
+│  Signal      │     │ Hash on-chain│     │  Prove match │     Score on-chain
+│  (off-chain) │     │  (ZK proof)  │     │  (ZK proof)  │
 └──────────────┘     └──────────────┘     └──────────────┘
 ```
 
