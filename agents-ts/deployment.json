@@ -1,0 +1,52 @@
+{
+  "contractAddress": "8e3341b5a4b3aefba03bde7e81079e3d74caea830d3ff4c79ac1ae482ba88bff",
+  "deployedAt": "2026-02-11T15:43:15.073Z",
+  "network": "standalone",
+  "walletAddress": {
+    "type": "addr",
+    "network": "undeployed",
+    "data": {
+      "type": "Buffer",
+      "data": [
+        188,
+        97,
+        13,
+        208,
+        124,
+        82,
+        245,
+        144,
+        18,
+        168,
+        140,
+        47,
+        159,
+        28,
+        95,
+        52,
+        203,
+        172,
+        199,
+        91,
+        134,
+        130,
+        2,
+        151,
+        93,
+        111,
+        25,
+        190,
+        175,
+        55,
+        40,
+        75
+      ]
+    }
+  },
+  "config": {
+    "indexer": "http://127.0.0.1:8088/api/v3/graphql",
+    "indexerWS": "ws://127.0.0.1:8088/api/v3/graphql/ws",
+    "node": "ws://127.0.0.1:9944",
+    "proofServer": "http://127.0.0.1:6300"
+  }
+}
