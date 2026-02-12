@@ -302,9 +302,9 @@ Midnight uses **DUST** as a non-transferable fee token (generated from staked tN
 | `deployment.json` not found | Run `npm run deploy` first to deploy the contract |
 
 ## Screenshots
-![alt text](<Screenshot from 2026-02-12 18-50-02.png>) ![alt text](<Screenshot from 2026-02-12 18-48-48.png>) ![alt text](<Screenshot from 2026-02-12 18-47-10.png>) ![alt text](<Screenshot from 2026-02-12 18-46-32.png>) ![alt text](<Screenshot from 2026-02-12 18-46-06.png>)
+![alt text](<Screenshot from 2026-02-12 18-50-02.png>) ![alt text](<Screenshot from 2026-02-13 02-34-42.png>) ![alt text](<Screenshot from 2026-02-12 18-47-10.png>) ![alt text](<Screenshot from 2026-02-12 18-46-32.png>) ![alt text](<Screenshot from 2026-02-12 18-46-06.png>)
 
-
+ ![alt text](<Screenshot from 2026-02-13 02-33-35.png>)
 ## License
 
 Apache-2.0
