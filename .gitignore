@@ -33,6 +33,10 @@ coverage/
 
 # Level DB (private state storage)
 midnight-level-db/
+midnight-ldb-*/
+
+# Deployment state (local contract address)
+deployment.json
 
 # Python
 __pycache__/
