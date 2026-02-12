@@ -1,202 +1,158 @@
-# GhostSignal — Demo Script
+# GhostSignal — Demo Video Script
 
-A step-by-step walkthrough for demonstrating the Ghost Signal Marketplace.
-
----
-
-## Prerequisites
-
-| Requirement        | Version    | Check                          |
-|--------------------|------------|--------------------------------|
-| Node.js            | ≥ 18       | `node -v`                      |
-| npm                | ≥ 9        | `npm -v`                       |
-| Docker             | ≥ 24       | `docker -v`                    |
-| Python (optional)  | ≥ 3.10     | `python3 --version`            |
-| Compact compiler   | ≥ 0.20     | `compactc --version`           |
+**Duration:** ~4-5 mins | **Format:** Screen recording, notepad on side, no voiceover
 
 ---
 
-## Part 1 — Setup (5 min)
+## Setup Before Recording
 
-### 1.1 Start the Local DevNet
+- Docker devnet running (node, indexer, proof-server)
+- Contract deployed (`deployment.json` exists)
+- Frontend running at `http://localhost:5173`
+- Terminal ready in `agents-ts/` to run `npm run start`
+- Notepad open on the right side of screen
 
-```bash
-./scripts/start-devnet.sh
+---
+
+## SCENE 1 — Intro (30s)
+
+**Type in notepad:**
+```
+GhostSignal — AI Agent Signal Marketplace
+Built on Midnight Blockchain
+
+AI agents publish buy/sell signals using
+zero-knowledge commitments.
+
+Strategies stay PRIVATE.
+Track records are PUBLIC and verifiable on-chain.
 ```
 
-Wait for the three services to report ✅:
-- Node at `ws://localhost:9944`
-- Indexer at `http://localhost:8088`
-- Proof Server at `http://localhost:6300`
+**Show on screen:** The frontend dashboard (Live Market tab).
 
-### 1.2 Install & Build
+---
 
-```bash
-./scripts/setup.sh
+## SCENE 2 — How It Works (30s)
+
+**Type in notepad:**
+```
+How it works:
+
+1. GENERATE — Agent creates a signal (off-chain)
+2. COMMIT   — Hash goes on-chain (ZK proof)
+3. REVEAL   — Agent proves the preimage matches
+4. VERIFY   — Signal scored, track record updated
+
+Nobody sees the signal until the agent reveals it.
 ```
 
-This runs `npm install`, compiles the Compact contract, and opens the
-frontend at `http://localhost:5173`.
+**Show on screen:** Dashboard or briefly show `ghost-marketplace.compact`.
 
 ---
 
-## Part 2 — Wallet Setup (2 min)
+## SCENE 3 — Start the Agents (60s)
 
-1. Open the browser at **http://localhost:5173**
-2. You'll see the **Wallet Setup** screen.
-3. Click **"Generate New Seed"** to create a fresh wallet.
-4. Copy the seed phrase (you can paste it back later to restore).
-5. Click **"Set Up Wallet"**.
-6. Wait for the wallet to synchronise with the devnet (status shows
-   "Syncing…" → "Ready").
+**Type in notepad:**
+```
+Starting 3 AI agents:
+  - AlphaEdge AI
+  - MomentumBot
+  - DeepTrend γ
 
-> **Note:** There is no genesis wallet auto-login. You always start by
-> providing or generating a seed.
+Each agent has its own HD wallet,
+funded with tNight tokens.
+```
 
-### Fund the Wallet
+**Do:** Run `npm run start` in terminal. Let the initialization logs scroll.
 
-Use the local network's funding script:
-
-```bash
-cd ../../../midnight-local-network
-npx ts-node fund.mjs <your-wallet-address>
+**Type when agents connect:**
+```
+Each agent:
+  ✓ Builds wallet from unique seed
+  ✓ Syncs with Midnight network
+  ✓ Joins the deployed contract
+  ✓ Registers on-chain
+  ✓ Starts generating signals
 ```
 
 ---
 
-## Part 3 — Deploy the Contract (2 min)
+## SCENE 4 — Live Commit-Reveal Cycle (90s)
 
-1. After wallet setup, the **Deploy Contract** panel appears.
-2. Click **"Deploy New Marketplace"**.
-3. Wait for the transaction to confirm (ZK proof generation may take 30–60 s
-   on the first call).
-4. The contract address appears. **Copy it** — other participants will need
-   it to join.
+**Type in notepad:**
+```
+Watch the terminal:
 
-### Joining an Existing Marketplace
+💡 = Signal generated (private, off-chain)
+🔒 = Committed on-chain (ZK proof, hash only)
+👁️  = Revealed (chain verifies preimage)
+✅ = Verified (WIN/LOSS scored on-chain)
+💰 = Another agent purchased the signal
 
-If someone else has already deployed:
-
-1. Paste their contract address in the **"Join Existing"** field.
-2. Click **"Join Marketplace"**.
-
----
-
-## Part 4 — The Marketplace (5 min)
-
-Once the contract is live, the full marketplace UI loads:
-
-### 4.1 Agent Scoreboard
-
-- Shows all registered agents, win rates, and stakes.
-- Initially empty — agents register themselves when they commit.
-
-### 4.2 Commit a Signal
-
-1. In the **Agent Card** panel, click **"Commit Signal"**.
-2. Under the hood:
-   - A random trading signal is generated.
-   - `SHA-256(signal + salt)` is computed.
-   - The hash is submitted on-chain via `commit_signal()`.
-   - Your stake is locked.
-3. The commitment appears in the **Commitment Timeline**.
-
-### 4.3 Reveal the Signal
-
-1. After the reveal delay, click **"Reveal Signal"**.
-2. The original signal and salt are published on-chain.
-3. The timeline updates to show the revealed signal.
-
-### 4.4 Verify a Proof
-
-1. Navigate to the **Verification Proof** panel.
-2. Enter a commitment hash, signal JSON, and salt.
-3. Click **"Verify"**.
-4. The UI computes `SHA-256(signal + salt)` locally and compares to the hash.
-5. Green ✅ = verified, Red ❌ = mismatch.
-
----
-
-## Part 5 — AI Agent (Optional, 3 min)
-
-### 5.1 Start the Python Agent
-
-```bash
-cd agent
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python -m src.ghost_agent
+TX hashes starting with "00..." = REAL on-chain
+TX hashes starting with "0x..." = simulated (dust cooldown)
 ```
 
-The agent will:
-1. Pull (synthetic) market data.
-2. Run its strategy.
-3. Commit a signal hash.
-4. Wait for the reveal delay.
-5. Reveal the signal.
-6. Loop.
-
-### 5.2 Watch the Timeline
-
-Switch back to the browser — you'll see the agent's commitments and reveals
-appearing in real-time on the **Commitment Timeline**.
-
-### 5.3 Generate Demo Data
-
-For a quick demo with multiple agents:
-
-```bash
-python scripts/generate-demo-data.py --count 5
-```
-
-This outputs JSON with 5 agents, their signals, and verifiable commitments.
+**Show on screen:** Terminal with live agent activity for ~60-90 seconds.
 
 ---
 
-## Part 6 — Key Talking Points
+## SCENE 5 — Frontend Walkthrough (60s)
 
-### "Why Midnight?"
+**Switch to browser. Click through each tab:**
 
-> Traditional signal marketplaces require agents to reveal their strategies.
-> Midnight's ZK proofs let agents **prove they had a correct signal** without
-> revealing **how they generated it**.
+### Live Market tab
+```
+📊 Live Market
+Real-time signals from all agents.
+Shows: pair, direction, confidence, TX hash
+```
 
-### "How does the commit-reveal work?"
+### Leaderboard tab
+```
+🏆 Leaderboard
+Agents ranked by verified track record.
+All backed by on-chain data.
+```
 
-> 1. Agent computes `hash(signal + salt)` and publishes the hash.
-> 2. Later, agent reveals the signal and salt.
-> 3. Anyone can verify: recompute the hash and compare.
-> 4. The ZK proof ensures the agent can't change the signal after the fact.
+### Agent Activity tab
+```
+🤖 Full Activity Log
+Every event: commits, reveals, verifies, purchases
+With timestamps and TX hashes
+```
 
-### "What's on-chain vs off-chain?"
-
-> | On-chain (public)                 | Off-chain (private)              |
-> |-----------------------------------|----------------------------------|
-> | Commitment hashes                 | Trading strategy                 |
-> | Stake amounts                     | Signal generation logic          |
-> | Reveal data (after reveal phase)  | Salt (until reveal)              |
-> | Agent count, stats                | Per-agent private state           |
-
-### "Is this production-ready?"
-
-> This is a **reference implementation** and demo scaffold. For production:
-> - Integrate real market data feeds (CoinGecko, Binance).
-> - Add economic incentive mechanisms (slashing, rewards).
-> - Implement proper agent authentication.
-> - Harden the Python agent against network failures.
+### On-Chain Explorer tab (click a TX)
+```
+⛓️ On-Chain Explorer
+Click any TX → see block number, block hash,
+agent, and data payload.
+```
 
 ---
 
-## Cleanup
+## SCENE 6 — Closing (30s)
 
-```bash
-# Stop the frontend
-Ctrl+C  (in the terminal running vite)
-
-# Stop the devnet
-cd midnight-local-network && docker compose down
-
-# Deactivate the Python venv
-deactivate
+**Type in notepad:**
 ```
+Summary:
+- Private strategies via zero-knowledge proofs
+- Public, tamper-proof track records on-chain
+- Autonomous AI agents trading in real-time
+- Built on Midnight blockchain
+
+GhostSignal — where track records speak for themselves.
+
+github.com/msnotfound/ghostsignal
+```
+
+Hold for 5 seconds, end recording.
+
+---
+
+## Tips
+
+- Pre-type all notepad text, scroll down to reveal each block
+- Start `npm run start` ~30s before Scene 4 so activity is flowing
+- Use a large monospace font (Consolas) in notepad
+- Notepad right ~30%, terminal/browser left ~70%

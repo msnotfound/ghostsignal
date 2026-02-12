@@ -301,9 +301,9 @@ Midnight uses **DUST** as a non-transferable fee token (generated from staked tN
 | Agent shows 0 balance | Run `npm run fund` to transfer tNight from genesis wallet |
 | `deployment.json` not found | Run `npm run deploy` first to deploy the contract |
 
-## Demo Video
+## Screenshots
+![alt text](<Screenshot from 2026-02-12 18-50-02.png>) ![alt text](<Screenshot from 2026-02-12 18-48-48.png>) ![alt text](<Screenshot from 2026-02-12 18-47-10.png>) ![alt text](<Screenshot from 2026-02-12 18-46-32.png>) ![alt text](<Screenshot from 2026-02-12 18-46-06.png>)
 
-See [demo-video-script.md](docs/demo-video-script.md) for a guided walkthrough of the project.
 
 ## License
 
