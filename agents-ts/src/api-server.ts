@@ -142,34 +142,41 @@ async function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// Run a full agent lifecycle: commit → reveal → verify (sequential).
+// Because the contract stores a single signal_commitment, only one agent
+// can occupy the commit-reveal slot at a time. Each agent must complete
+// its entire lifecycle before the next agent starts.
 async function runAgentCycle(agent: GhostAgent) {
   try {
+    // 1. Generate signal
     const signal = await agent.generateSignal();
     await sleep(500 + Math.random() * 1000);
 
+    // 2. Commit (stores persistentHash(secret) on-chain)
     const commitment = await agent.commitSignal(signal.id);
 
-    // Schedule reveal
-    setTimeout(async () => {
-      try {
-        await agent.revealSignal(commitment.id);
+    // 3. Wait, then reveal (asserts preimage matches on-chain commitment)
+    await sleep(config.revealDelayMs);
+    try {
+      await agent.revealSignal(commitment.id);
 
-        // Maybe others buy
-        await maybePurchase(agent, signal);
+      // Maybe others buy the revealed signal
+      await maybePurchase(agent, signal);
+    } catch (e) {
+      logger.error(`Reveal error for ${agent.name}: ${e}`);
+    }
 
-        // Schedule verify
-        setTimeout(async () => {
-          try {
-            const outcome = Math.random() > 0.4 ? 'win' : 'loss';
-            await agent.verifySignal(commitment.id, outcome);
-          } catch (e) { /* ignore */ }
-        }, config.verifyDelayMs);
-
-      } catch (e) { /* ignore */ }
-    }, config.revealDelayMs);
+    // 4. Wait, then verify (asserts preimage again for scoring)
+    await sleep(config.verifyDelayMs);
+    try {
+      const outcome = Math.random() > 0.4 ? 'win' : 'loss';
+      await agent.verifySignal(commitment.id, outcome);
+    } catch (e) {
+      logger.error(`Verify error for ${agent.name}: ${e}`);
+    }
 
   } catch (e) {
-    logger.error(`Cycle error: ${e}`);
+    logger.error(`Cycle error for ${agent.name}: ${e}`);
   }
 }
 
@@ -189,15 +196,20 @@ async function maybePurchase(seller: GhostAgent, signal: Signal) {
   }
 }
 
+// Run agents one at a time. Each agent completes its full commit→reveal→verify
+// cycle before the next agent starts. This is required because the contract
+// uses a single signal_commitment ledger variable.
 async function runSimulationLoop() {
   const runRound = async () => {
-    const activeCount = 1 + Math.floor(Math.random() * 2); // 1-2 agents per round (reduced for 3 agents)
+    // Pick 1-2 agents randomly for this round
+    const activeCount = 1 + Math.floor(Math.random() * 2);
     const shuffled = [...agents].sort(() => Math.random() - 0.5);
     const active = shuffled.slice(0, activeCount);
 
+    // Run each agent's FULL lifecycle sequentially
     for (const agent of active) {
       await runAgentCycle(agent);
-      await sleep(1000 + Math.random() * 2000);
+      await sleep(2000 + Math.random() * 3000); // Buffer between agents
     }
   };
 
@@ -207,8 +219,15 @@ async function runSimulationLoop() {
     await sleep(2000);
   }
 
-  // Continuous
-  setInterval(runRound, config.signalIntervalMs);
+  // Continuous loop (use recursive setTimeout instead of setInterval
+  // to prevent overlap if a round takes longer than the interval)
+  const scheduleNext = () => {
+    setTimeout(async () => {
+      await runRound();
+      scheduleNext();
+    }, config.signalIntervalMs);
+  };
+  scheduleNext();
 }
 
 // ============================================

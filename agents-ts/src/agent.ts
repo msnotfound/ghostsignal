@@ -34,6 +34,7 @@ export interface Commitment {
   signalId: string;
   hash: string;
   salt: string;
+  secretBytes: Uint8Array; // The 32-byte secret used for on-chain commit-reveal
   timestamp: number;
   txHash?: string;
   blockHeight?: bigint;
@@ -209,18 +210,26 @@ export class GhostAgent extends EventEmitter {
     const data = JSON.stringify({ signal, salt });
     const hash = crypto.createHash('sha256').update(data).digest('hex');
 
+    // Generate the 32-byte secret for on-chain commit-reveal.
+    // This secret is the preimage: commit stores persistentHash(secret),
+    // reveal and verify assert the preimage matches.
+    const secretBytes = crypto.createHash('sha256')
+      .update(Buffer.from(hash, 'hex'))
+      .digest();
+
     const commitment: Commitment = {
       id: crypto.randomUUID(),
       signalId,
       hash: `0x${hash}`,
       salt,
+      secretBytes,  // Store for later reveal/verify
       timestamp: Date.now(),
       revealed: false,
       verified: false,
     };
 
-    // Call real on-chain commit_signal circuit
-    const txHash = await this.callOnChain('commit_signal');
+    // Call real on-chain commit_signal circuit with the secret
+    const txHash = await this.callOnChain('commit_signal', secretBytes);
     commitment.txHash = txHash;
 
     this.commitments.set(commitment.id, commitment);
@@ -243,8 +252,9 @@ export class GhostAgent extends EventEmitter {
       throw new Error(`Signal ${commitment.signalId} not found`);
     }
 
-    // Call real on-chain reveal_signal circuit
-    const txHash = await this.callOnChain('reveal_signal');
+    // Call real on-chain reveal_signal circuit with the SAME secret
+    // The contract will assert: persistentHash(secret) == signal_commitment
+    const txHash = await this.callOnChain('reveal_signal', commitment.secretBytes);
 
     commitment.revealed = true;
     this.stats.signalsRevealed++;
@@ -267,8 +277,9 @@ export class GhostAgent extends EventEmitter {
       throw new Error(`Signal not found`);
     }
 
-    // Call real on-chain verify_signal circuit
-    const txHash = await this.callOnChain('verify_signal');
+    // Call real on-chain verify_signal circuit with the SAME secret
+    // The contract asserts: persistentHash(secret) == signal_commitment
+    const txHash = await this.callOnChain('verify_signal', commitment.secretBytes);
 
     commitment.verified = true;
     this.stats.signalsVerified++;
@@ -323,28 +334,33 @@ export class GhostAgent extends EventEmitter {
   }
 
   // Execute a single on-chain call attempt
-  private async executeOnChain(method: 'commit_signal' | 'reveal_signal' | 'verify_signal') {
+  private async executeOnChain(method: 'commit_signal' | 'reveal_signal' | 'verify_signal', secret: Uint8Array) {
     switch (method) {
       case 'commit_signal':
-        return chainApi.callCommitSignal(this.contract!);
+        return chainApi.callCommitSignal(this.contract!, secret);
       case 'reveal_signal':
-        return chainApi.callRevealSignal(this.contract!);
+        return chainApi.callRevealSignal(this.contract!, secret);
       case 'verify_signal':
-        return chainApi.callVerifySignal(this.contract!);
+        return chainApi.callVerifySignal(this.contract!, secret);
     }
   }
 
   // Execute a real on-chain transaction with dust-aware retry
-  private async callOnChain(method: 'commit_signal' | 'reveal_signal' | 'verify_signal'): Promise<string> {
+  private async callOnChain(method: 'commit_signal' | 'reveal_signal' | 'verify_signal', secret?: Uint8Array): Promise<string> {
     if (!this.chainInitialized || !this.contract) {
       logger.warn(`${this.name}: Chain not initialized, using simulated tx for ${method}`);
+      return this.simulateTransaction(method);
+    }
+
+    if (!secret) {
+      logger.warn(`${this.name}: No secret provided for ${method}, using simulated tx`);
       return this.simulateTransaction(method);
     }
 
     const MAX_RETRIES = 2;
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const txData = await this.executeOnChain(method);
+        const txData = await this.executeOnChain(method, secret);
         const txId = txData.txId;
         logger.info(`${this.name}: ${method} on-chain TX: ${txId} (block ${txData.blockHeight})`);
         return txId;

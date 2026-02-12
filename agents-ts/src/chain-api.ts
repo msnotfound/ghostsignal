@@ -437,27 +437,33 @@ export const getLedgerState = async (
 
 export const callCommitSignal = async (
     contract: DeployedGhostMarketplaceContract,
+    secret: Uint8Array,
 ): Promise<FinalizedTxData> => {
-    logger.info('Calling commit_signal circuit...');
-    const result = await contract.callTx.commit_signal();
+    logger.info('Calling commit_signal circuit (with secret preimage)...');
+    // @ts-ignore - SDK TransactionContext type doesn't expose raw circuit params; runtime handles Uint8Array correctly
+    const result = await contract.callTx.commit_signal(secret);
     logger.info(`commit_signal TX: ${result.public.txId} (block ${result.public.blockHeight})`);
     return result.public;
 };
 
 export const callRevealSignal = async (
     contract: DeployedGhostMarketplaceContract,
+    secret: Uint8Array,
 ): Promise<FinalizedTxData> => {
-    logger.info('Calling reveal_signal circuit...');
-    const result = await contract.callTx.reveal_signal();
+    logger.info('Calling reveal_signal circuit (asserting preimage match)...');
+    // @ts-ignore - SDK TransactionContext type doesn't expose raw circuit params; runtime handles Uint8Array correctly
+    const result = await contract.callTx.reveal_signal(secret);
     logger.info(`reveal_signal TX: ${result.public.txId} (block ${result.public.blockHeight})`);
     return result.public;
 };
 
 export const callVerifySignal = async (
     contract: DeployedGhostMarketplaceContract,
+    secret: Uint8Array,
 ): Promise<FinalizedTxData> => {
-    logger.info('Calling verify_signal circuit...');
-    const result = await contract.callTx.verify_signal();
+    logger.info('Calling verify_signal circuit (asserting preimage match)...');
+    // @ts-ignore - SDK TransactionContext type doesn't expose raw circuit params; runtime handles Uint8Array correctly
+    const result = await contract.callTx.verify_signal(secret);
     logger.info(`verify_signal TX: ${result.public.txId} (block ${result.public.blockHeight})`);
     return result.public;
 };
